@@ -1,0 +1,61 @@
+﻿@typeparam TableItem
+<table class="table table-striped">
+    <thead class="thead-dark">
+        <tr>@GridHeader</tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Items)
+        {
+            <tr>@GridRow(item)</tr>
+        }
+    </tbody>
+</table>
+
+<div class="pagination">
+    <button disabled="@(currentPage == 1)" class="btn pagebutton btn-secondary" @onclick="GoBack">Previous</button>
+    <span class="pagebutton btn btn-link disabled">Page @currentPage of @numberOfPages</span>
+    <button disabled="@(currentPage == numberOfPages)" class="btn pagebutton btn-secondary" @onclick=GoNext>Next</button>
+</div>
+
+@code
+{
+    [Parameter]
+    public RenderFragment GridHeader { get; set; }
+    [Parameter]
+    public RenderFragment<TableItem> GridRow { get; set; }
+    [Parameter]
+    public IEnumerable<TableItem> AllItems { get; set; }
+    [Parameter]
+    public int PageSize { get; set; }
+
+    IEnumerable<TableItem> Items { get; set; }
+    int currentPage = 1;
+    int numberOfPages = 0;
+
+
+    protected override void OnParametersSet()
+    {
+        numberOfPages = (int)Math.Ceiling(AllItems.Count() / (decimal)PageSize);
+        if (numberOfPages == 0)
+            numberOfPages++;
+
+        UpdateList(1);
+    }
+
+    public void GoBack()
+    {
+        UpdateList(currentPage - 1);
+    }
+
+    public void GoNext()
+    {
+        UpdateList(currentPage + 1);
+    }
+
+    private void UpdateList(int currentPage)
+    {
+        Items = AllItems.Skip(PageSize * (currentPage - 1)).Take(PageSize);
+        this.currentPage = currentPage;
+        this.StateHasChanged();
+    }
+}
